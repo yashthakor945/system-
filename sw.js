@@ -1,0 +1,5 @@
+const C='sl-v1',A=['./','index.html','manifest.json','logo.jpg','menu.mp3','check.wav','icon-192.png','icon-512.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
+async function rng(q){const r=await caches.match(q.url);if(!r)return fetch(q);const b=await r.blob(),m=/bytes=(\d*)-(\d*)/.exec(q.headers.get('range')),s=+m[1]||0,e=m[2]?+m[2]+1:b.size;return new Response(b.slice(s,e),{status:206,headers:{'Content-Type':r.headers.get('Content-Type')||'audio/mpeg','Content-Range':`bytes ${s}-${e-1}/${b.size}`,'Content-Length':e-s}})}
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;if(e.request.headers.has('range'))return e.respondWith(rng(e.request));e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('index.html'))))});
